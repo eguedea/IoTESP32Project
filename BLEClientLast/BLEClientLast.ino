@@ -4,12 +4,17 @@
  * author unknown
  * updated by chegewara
  */
+//6.40 A 6.6
+//ABAJO DE 6.1 ESTA MUERTO
 
 #include "BLEDevice.h"
 //#include "BLEScan.h"
 
 //Variables PH
 const int phpin = 34;
+const int ledpinconnected = 5;
+const int ledphred = 18; 
+const int ledphgreen = 19;
 int sensorValue = 0; 
 unsigned long int avgValue; 
 float b;
@@ -20,7 +25,7 @@ int buf[10],temp;
 // The remote service we wish to connect to.
 static BLEUUID serviceUUID("3f7b3140-002e-11ea-8d71-362b9e155667");
 // The characteristic of the remote service we are interested in.
-static BLEUUID    charUUID("3c14101f-3139-4887-9c6f-dd60f1562be5");
+static BLEUUID charUUID("3c14101f-3139-4887-9c6f-dd60f1562be5");
 
 static boolean doConnect = false;
 static boolean connected = false;
@@ -132,6 +137,19 @@ byte* serialFloatPrint(float f) {
 
 byte* phget() {
   char* phbuffer;
+  int buf[20];
+  int toAvg = 0;
+  for(int i = 0; i<20;i++)
+  {
+    buf[i] = analogRead(phpin);
+    delay(50);
+  }
+  for(int i = 0; i<20;i++)
+  {
+    toAvg += buf[i];
+  }
+  
+  /*
   for(int i=0;i<10;i++) 
  { 
   buf[i]=analogRead(phpin);
@@ -151,8 +169,11 @@ byte* phget() {
  }
  avgValue=0;
  for(int i=2;i<8;i++)
- avgValue+=buf[i];
- float pHVol=(float)avgValue*5.0/1024/6;
+ avgValue+=buf[i];*/
+ avgValue = toAvg/20;
+ Serial.println(avgValue);
+ float pHVol=(float)(avgValue)*5.0/1024/6;
+ 
  float phValue = -5.70 * pHVol + 21.34;
  Serial.println("BEFORE CRAASH");
  //dtostrf(phValue,4,3,phbuffer);
@@ -174,8 +195,14 @@ byte* phget() {
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting Arduino BLE Client application...");
+  pinMode(34, INPUT);
+  pinMode(5, OUTPUT);
+  pinMode(18, OUTPUT);
+  pinMode (19, OUTPUT);
+  
 
-  BLEDevice::init("");
+  
+  BLEDevice::init("TupperClient");
 
   // Retrieve a Scanner and set the callback we want to use to be informed when we
   // have detected a new device.  Specify that we want active scanning and start the
@@ -188,10 +215,19 @@ void setup() {
   pBLEScan->start(5, false);
 } // End of setup.
 
-
+void checkph(byte* ph)
+{
+  if((*((float*)&ph))<6.1)
+  {
+    digitalWrite(ledphred, HIGH);
+  }
+  else if(((*((float*)&ph))>6.1))
+  {
+    digitalWrite(ledphgreen, HIGH);
+  }
+}
 // This is the Arduino main loop function.
 void loop() {
-
   // If the flag "doConnect" is true then we have scanned for and found the desired
   // BLE Server with which we wish to connect.  Now we connect to it.  Once we are 
   // connected we set the connected flag to be true.
@@ -201,21 +237,27 @@ void loop() {
     } else {
       Serial.println("We have failed to connect to the server; there is nothin more we will do.");
     }
-    //doConnect = false;
+    doConnect = false;
   }
 
   // If we are connected to a peer BLE Server, update the characteristic each time we are reached
   // with the current time since boot.
   if (connected) {
-    String newValue = ("Dummy Value: "+String(millis()/1000));
+     phget();
+    Serial.println(String((char*)phget()));
+    String newValue = (String((char*)phget()));
+    pRemoteCharacteristic->writeValue(newValue.c_str(), newValue.length());
+    digitalWrite(ledpinconnected, HIGH);
+/*
     //String(millis()/1000
     Serial.println("Setting new characteristic value to \"" + newValue + "\"");
     
     // Set the characteristic's value to be the array of bytes that is actually a string.
-    pRemoteCharacteristic->writeValue(newValue.c_str(), newValue.length());
-  }else if(doScan){
+    */
+  }
+  else if(doScan){
     BLEDevice::getScan()->start(0);  // this is just eample to start scan after disconnect, most likely there is better way to do it in arduino
   }
   
-  delay(1000); // Delay a second between loops.
+  delay(2000); // Delay a second between loops.
 } // End of loop

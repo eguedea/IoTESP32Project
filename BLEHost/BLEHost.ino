@@ -14,17 +14,25 @@
 
 #define SERVICE_UUID        "3f7b3140-002e-11ea-8d71-362b9e155667"
 #define CHARACTERISTIC_UUID "3c14101f-3139-4887-9c6f-dd60f1562be5"
-const char* ssid = "IoT";
-const char* password =  "1t3s0IoT18";
- 
+//const char* ssid = "IoT";
+const char* ssid = "iPhone de Eric";
+//const char* password =  "1t3s0IoT18";
+const char* password =  "eguedea223";
+const int ledwifi = 5;
+const int ledble = 18; 
 void sendata(String data)
 {
  // String fullname = "pepe";
   //String email = "aaaaaaa@hotmail.com";
+  String id = "'5da8cf331c9d440000ef1319'";
   int httpResponseCode;
+  Serial.println(data+"\n");
   //tuppersens.us-west-2.elasticbeanstalk.com
-  String url = "http://148.201.214.14/iot/api/servicesiot/dummydata";
+ // http://tuppersens.us-west-2.elasticbeanstalk.com/api/servicesiot/statustopper
+ //"http://172.20.10.3/IoT/api/servicesiot/statustopper
+  String url ="http://172.20.10.3/IoT/api/servicesiot/statustopper";
   String urlget;
+
   String urlfinal;
   HTTPClient http;
   //fullname"+fullname+"&email"+email+"
@@ -32,7 +40,8 @@ void sendata(String data)
   http.begin(urlfinal);
   http.addHeader("Content-Type", "application/json");            
  //{fullname:'pepe',email:'aaaaaaa@hotmail.com'}
-  httpResponseCode = http.POST("{data:'"+data+"'}"); 
+  httpResponseCode = http.POST("{id:"+id+",ph:"+data+"}");
+  //("{id:"+id+",ph:"+data+"}");
  // int httpCode = http.GET();
     if(httpResponseCode>0){
  
@@ -56,27 +65,25 @@ void sendata(String data)
 }
 
 class MyCallbacks: public BLECharacteristicCallbacks {
+    
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
-      sendata(pCharacteristic->getValue().c_str());
-
-     /* if (value.length() > 0) {
-        Serial.println("*********");
-        Serial.print("New value: ");
-        for (int i = 0; i < value.length(); i++)
-          Serial.print(value[i]);
-
-        Serial.println();
-        Serial.println("*********");
-      }*/
+      Serial.println("Callback: ");
+      sendata( pCharacteristic->getValue().c_str());
+ 
     }
+     void onRead(BLECharacteristic *pCharacteristic) {
+      std::string value = pCharacteristic->getValue();
+      Serial.println("Callback");
+      sendata(pCharacteristic->getValue().c_str());
+    }
+
     
 };
 
 void setup() {
   Serial.begin(115200);
 
-     Serial.println("IIIIIIIIIIN");
 //Connecting to Wifi
   WiFi.begin(ssid, password);
  
@@ -98,12 +105,13 @@ void setup() {
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          CHARACTERISTIC_UUID,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE
+                                         BLECharacteristic::PROPERTY_WRITE_NR
                                        );
+                                    
 
   pCharacteristic->setCallbacks(new MyCallbacks());
 
-  pCharacteristic->setValue("Hello World");
+ // pCharacteristic->setValue("Hello World");
   pService->start();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
@@ -117,8 +125,9 @@ void setup() {
   //END BT CONNECTION
 
 }
-
+     
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(2000);
+
+  delay(1000);
 }
