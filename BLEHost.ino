@@ -68,15 +68,13 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
-      Serial.println("CallbackOnWrite");
-      Serial.println(pCharacteristic->getValue().c_str());
+      Serial.println("Callback: ");
       sendata( pCharacteristic->getValue().c_str());
  
     }
      void onRead(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
-      Serial.println("CallbackOnRead");
-      Serial.println(pCharacteristic->getValue().c_str());
+      Serial.println("Callback");
       sendata(pCharacteristic->getValue().c_str());
     }
 
@@ -113,7 +111,7 @@ void setup() {
 
   pCharacteristic->setCallbacks(new MyCallbacks());
 
-  pCharacteristic->setValue("Waiting for value");
+ // pCharacteristic->setValue("Hello World");
   pService->start();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
@@ -123,7 +121,7 @@ void setup() {
   pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
   pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
-  Serial.println("Ready to be connected to.");
+  Serial.println("Characteristic defined! Now you can read it in your phone!");
   //END BT CONNECTION
 
 }

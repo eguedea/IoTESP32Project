@@ -111,7 +111,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
    * Called for each advertising BLE server.
    */
   void onResult(BLEAdvertisedDevice advertisedDevice) {
-    Serial.println("BLE Advertised Device found: ");
+    Serial.print("BLE Advertised Device found: ");
     Serial.println(advertisedDevice.toString().c_str());
 
     // We have found a device, let us now see if it contains the service we are looking for.
@@ -202,7 +202,7 @@ void setup() {
   
 
   
-  BLEDevice::init("TPC");
+  BLEDevice::init("TupperClient");
 
   // Retrieve a Scanner and set the callback we want to use to be informed when we
   // have detected a new device.  Specify that we want active scanning and start the
@@ -245,8 +245,7 @@ void loop() {
   if (connected) {
      phget();
     Serial.println(String((char*)phget()));
-    //(String((char*)phget()))
-    String newValue = "Prueba";
+    String newValue = (String((char*)phget()));
     pRemoteCharacteristic->writeValue(newValue.c_str(), newValue.length());
     digitalWrite(ledpinconnected, HIGH);
 /*
