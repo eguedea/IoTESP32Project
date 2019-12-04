@@ -25,7 +25,7 @@ int buf[10],temp;
 // The remote service we wish to connect to.
 static BLEUUID serviceUUID("3f7b3140-002e-11ea-8d71-362b9e155667");
 // The characteristic of the remote service we are interested in.
-static BLEUUID charUUID("3c14101f-3139-4887-9c6f-dd60f1562be5");
+static BLEUUID charUUID((uint16_t)0x0215);
 
 static boolean doConnect = false;
 static boolean connected = false;
@@ -99,7 +99,7 @@ bool connectToServer() {
 
     if(pRemoteCharacteristic->canNotify())
       pRemoteCharacteristic->registerForNotify(notifyCallback);
-
+    Serial.println("DONE CONNECTING");
     connected = true;
     return true;
 }
@@ -209,8 +209,8 @@ void setup() {
   // scan to run for 5 seconds.
   BLEScan* pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  pBLEScan->setInterval(1349);
-  pBLEScan->setWindow(449);
+ // pBLEScan->setInterval(1349);
+ // pBLEScan->setWindow(449);
   pBLEScan->setActiveScan(true);
   pBLEScan->start(5, false);
 } // End of setup.
@@ -243,7 +243,7 @@ void loop() {
   // If we are connected to a peer BLE Server, update the characteristic each time we are reached
   // with the current time since boot.
   if (connected) {
-     phget();
+    phget();
     Serial.println(String((char*)phget()));
     //(String((char*)phget()))
     String newValue = "Prueba";

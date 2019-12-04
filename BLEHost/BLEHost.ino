@@ -13,7 +13,7 @@
 // https://www.uuidgenerator.net/
 
 #define SERVICE_UUID        "3f7b3140-002e-11ea-8d71-362b9e155667"
-#define CHARACTERISTIC_UUID "3c14101f-3139-4887-9c6f-dd60f1562be5"
+#define CHARACTERISTIC_UUID "00000215-0000-1000-8000-00805f9b34fb"
 //const char* ssid = "IoT";
 const char* ssid = "iPhone de Eric";
 //const char* password =  "1t3s0IoT18";
@@ -99,7 +99,7 @@ void setup() {
   //END WIFI CONNECTION
   //STARTING BT CONNECTION
 
-  BLEDevice::init("TupperHost");
+  BLEDevice::init("TH");
   BLEServer *pServer = BLEDevice::createServer();
 
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -107,7 +107,7 @@ void setup() {
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          CHARACTERISTIC_UUID,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE_NR
+                                         BLECharacteristic::PROPERTY_WRITE
                                        );
                                     
 
