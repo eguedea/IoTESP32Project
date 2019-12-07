@@ -12,7 +12,7 @@
 
 //Variables PH
 const int phpin = 34;
-const int ledpinconnected = 5;
+const int ledpinconnected = 21;
 const int ledphred = 18; 
 const int ledphgreen = 19;
 int sensorValue = 0; 
@@ -33,6 +33,26 @@ static boolean doScan = false;
 static BLERemoteCharacteristic* pRemoteCharacteristic;
 static BLEAdvertisedDevice* myDevice;
 
+
+
+// Convierte un float en una cadena.
+// n -> número a convertir.
+// l -> longitud total de la cadena, por defecto 8.
+// d -> decimales, por defecto 2.
+// z -> si se desea rellenar con ceros a la izquierda, por defecto true.
+String floatToString( float n, int l, int d, boolean z){
+ char c[l+1];
+ String s;
+
+ dtostrf(n,l,d,c);
+ s=String(c);
+
+ if(z){
+ s.replace(" ","0");
+ }
+
+ return s;
+}
 static void notifyCallback(
   BLERemoteCharacteristic* pBLERemoteCharacteristic,
   uint8_t* pData,
@@ -89,14 +109,14 @@ bool connectToServer() {
       return false;
     }
     Serial.println(" - Found our characteristic");
-
+/*
     // Read the value of the characteristic.
     if(pRemoteCharacteristic->canRead()) {
       std::string value = pRemoteCharacteristic->readValue();
       Serial.print("The characteristic value was: ");
       Serial.println(value.c_str());
     }
-
+*/
     if(pRemoteCharacteristic->canNotify())
       pRemoteCharacteristic->registerForNotify(notifyCallback);
     Serial.println("DONE CONNECTING");
@@ -135,7 +155,7 @@ byte* serialFloatPrint(float f) {
   return b;
 }
 
-byte* phget() {
+float phget() {
   char* phbuffer;
   int buf[20];
   int toAvg = 0;
@@ -148,28 +168,6 @@ byte* phget() {
   {
     toAvg += buf[i];
   }
-  
-  /*
-  for(int i=0;i<10;i++) 
- { 
-  buf[i]=analogRead(phpin);
-  delay(10);
- }
- for(int i=0;i<9;i++)
- {
-  for(int j=i+1;j<10;j++)
-  {
-   if(buf[i]>buf[j])
-   {
-    temp=buf[i];
-    buf[i]=buf[j];
-    buf[j]=temp;
-   }
-  }
- }
- avgValue=0;
- for(int i=2;i<8;i++)
- avgValue+=buf[i];*/
  avgValue = toAvg/20;
  Serial.println(avgValue);
  float pHVol=(float)(avgValue)*5.0/1024/6;
@@ -182,21 +180,22 @@ byte* phget() {
                       |         \_Tamaño del número en carácteres
                       \_ Número a convertir
                   */
-  byte * b = (byte *) &phValue;
+  byte * b = serialFloatPrint(phValue);
   Serial.write("sensor = ");
   Serial.println(phValue);
   //Serial.write(phValue);
   Serial.write("\r\n");
-  delay(5000);
   
-  return b;
+  return phValue;
 }
+
+
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting Arduino BLE Client application...");
   pinMode(34, INPUT);
-  pinMode(5, OUTPUT);
+  pinMode(21, OUTPUT);
   pinMode(18, OUTPUT);
   pinMode (19, OUTPUT);
   
@@ -215,19 +214,22 @@ void setup() {
   pBLEScan->start(5, false);
 } // End of setup.
 
-void checkph(byte* ph)
+void checkph(float ph)
 {
-  if((*((float*)&ph))<6.1)
+  if(ph<6.1)
   {
+    digitalWrite(ledphgreen, LOW);
     digitalWrite(ledphred, HIGH);
   }
-  else if(((*((float*)&ph))>6.1))
+  else if(ph>6.1)
   {
+    digitalWrite(ledphred, LOW);
     digitalWrite(ledphgreen, HIGH);
   }
 }
 // This is the Arduino main loop function.
 void loop() {
+    checkph(phget());
   // If the flag "doConnect" is true then we have scanned for and found the desired
   // BLE Server with which we wish to connect.  Now we connect to it.  Once we are 
   // connected we set the connected flag to be true.
@@ -237,18 +239,17 @@ void loop() {
     } else {
       Serial.println("We have failed to connect to the server; there is nothin more we will do.");
     }
-    doConnect = false;
+   // doConnect = false;
   }
 
   // If we are connected to a peer BLE Server, update the characteristic each time we are reached
   // with the current time since boot.
   if (connected) {
-    phget();
-    Serial.println(String((char*)phget()));
-    //(String((char*)phget()))
-    String newValue = "Prueba";
-    pRemoteCharacteristic->writeValue(newValue.c_str(), newValue.length());
     digitalWrite(ledpinconnected, HIGH);
+   // Serial.println(String((char*)phget()));
+    String newValue = floatToString(phget(),4,2,1);
+    String toSend;
+    pRemoteCharacteristic->writeValue(newValue.c_str(), 5);
 /*
     //String(millis()/1000
     Serial.println("Setting new characteristic value to \"" + newValue + "\"");
@@ -259,6 +260,5 @@ void loop() {
   else if(doScan){
     BLEDevice::getScan()->start(0);  // this is just eample to start scan after disconnect, most likely there is better way to do it in arduino
   }
-  
-  delay(2000); // Delay a second between loops.
+  delay(10000); // Delay a second between loops.
 } // End of loop

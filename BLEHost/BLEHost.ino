@@ -14,10 +14,10 @@
 
 #define SERVICE_UUID        "3f7b3140-002e-11ea-8d71-362b9e155667"
 #define CHARACTERISTIC_UUID "00000215-0000-1000-8000-00805f9b34fb"
-//const char* ssid = "IoT";
-const char* ssid = "iPhone de Eric";
+//const char* ssid = "IoT"; iPhone de Eric
+const char* ssid = "IoT";
 //const char* password =  "1t3s0IoT18";
-const char* password =  "eguedea223";
+const char* password =  "1t3s0IoT18";
 const int ledwifi = 5;
 const int ledble = 18; 
 void sendata(String data)
@@ -30,7 +30,7 @@ void sendata(String data)
   //tuppersens.us-west-2.elasticbeanstalk.com
  // http://tuppersens.us-west-2.elasticbeanstalk.com/api/servicesiot/statustopper
  //"http://172.20.10.3/IoT/api/servicesiot/statustopper
-  String url ="http://172.20.10.3/IoT/api/servicesiot/statustopper";
+  String url ="http://tuppersens.us-west-2.elasticbeanstalk.com/api/servicesiot/statustopper";
   String urlget;
 
   String urlfinal;
@@ -52,7 +52,7 @@ void sendata(String data)
  
    }else{
  
-    Serial.print("Error on sending PUT Request: ");
+    Serial.print("Error on sending POST Request: ");
     Serial.println(httpResponseCode);
  
    }
@@ -79,7 +79,12 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       Serial.println(pCharacteristic->getValue().c_str());
       sendata(pCharacteristic->getValue().c_str());
     }
-
+    void onDisconnect(BLECharacteristic *pCharacteristic){
+      std::string value = pCharacteristic->getValue();
+      Serial.println("CallbackOnRead");
+      Serial.println(pCharacteristic->getValue().c_str());
+      sendata(pCharacteristic->getValue().c_str());
+    }
     
 };
 
